@@ -15,9 +15,7 @@ class Environment():
 
     def __init__(self, train_episodes, test_episodes, epsilon, epsilon_min, alpha, gamma, decay,
                  replace_target_iter, memory_size, batch_size, training_data,
-                 testing_data, max_products, min_products, max_sources, min_sources,
-                 max_product_quantity, min_product_quantity, max_source_distance,
-                 min_source_distance, max_source_inventory, min_source_inventory):
+                 testing_data, environment_parameters):
         
         '___Reinforcement Learning Variables___'
         # valid actions in the current episode
@@ -64,22 +62,22 @@ class Environment():
         self.training_data_pointer = 0
         self.testing_data_pointer = 0
         
-        '___Sourcing Parameters___'
+        '___Sourcing Environment Parameters___'
         # maximum, minimum number of products
-        self.max_products = max_products
-        self.min_products = min_products
+        self.max_products = environment_parameters.max_products
+        self.min_products = environment_parameters.min_products
         # maximum, minimum number of sources
-        self.max_sources = max_sources
-        self.min_sources = min_sources
+        self.max_sources = environment_parameters.max_sources
+        self.min_sources = environment_parameters.min_sources
         # maximum, minimum quantity per product
-        self.max_product_quantity = max_product_quantity
-        self.min_product_quantity = min_product_quantity
+        self.max_product_quantity = environment_parameters.max_product_quantity
+        self.min_product_quantity = environment_parameters.min_product_quantity
         #maximum, minimum distance from source to customer
-        self.max_source_distance = max_source_distance
-        self.min_source_distance = min_source_distance
+        self.max_source_distance = environment_parameters.max_source_distance
+        self.min_source_distance = environment_parameters.min_source_distance
         # maximum, minimum quantity in stock per source
-        self.max_source_inventory = max_source_inventory
-        self.min_source_inventory = min_source_inventory
+        self.max_source_inventory = environment_parameters.max_source_inventory
+        self.min_source_inventory = environment_parameters.min_source_inventory
         
         # number of products
         self.number_products = 0

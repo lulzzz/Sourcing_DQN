@@ -12,6 +12,26 @@ import os
 import csv
 import shutil
 
+'normalizes the distance between customer and source'
+def normalize_distance(distance, max_source_distance):
+    one_percent = max_source_distance / 100
+    one_percent_d = distance / one_percent
+    normalized_distance = one_percent_d * 0.01
+    return normalized_distance
+
+'normalizes the product quantity'
+def normalize_product_quantity(prod_quantity):
+    normalized_prod_quantity = prod_quantity / 10
+    return normalized_prod_quantity
+
+'normalizes the inventory quantity'
+def normalize_inventory_quantity(inventory_quantity):
+    normalized_quantity = (inventory_quantity / 10) - 1
+    return normalized_quantity
+
+
+
+
 def createFolder2():
     path = 'tests\\'
     folder_name = 'vanilla_sourcing'
@@ -76,11 +96,9 @@ def writeToCSV(data_list, file_name, path_):
         csv.write(row)
         
 'writes the parameters to a txt file'
-def writeParameterToFile(training_episodes,testing_episodes,epsilon,epsilon_min,alpha,gamma,
-    decay,replace_target_iter,memory_size,batch_size,STATICDATA,RANDOM_SEED,
-    max_products,min_products,max_sources,min_sources,max_product_quantity,
-    min_product_quantity,max_source_distance,min_source_distance,
-    max_source_inventory,min_source_inventory,path_,testseed):
+def writeParameterToFile(environment_parameters,training_episodes,testing_episodes,epsilon,epsilon_min,alpha,gamma,
+    decay,replace_target_iter,memory_size,batch_size,use_seed,
+    path_,testseed):
     path = path_
     data_type = '.txt'
     file_path = path+'/'+"parameter"+data_type
@@ -88,36 +106,35 @@ def writeParameterToFile(training_episodes,testing_episodes,epsilon,epsilon_min,
     str1 = " training_episodes: "+str(training_episodes)
     str2 = "\n testing_episodes: "+str(testing_episodes)
     str3 = "\n epsilon: "+str(epsilon)
+    str23 = "\n epsilon_min: "+str(epsilon_min)
     str4 = "\n alpha: "+str(alpha)
     str5 = "\n gamma: "+str(gamma)
     str6 = "\n decay: "+str(decay)
     str7 = "\n replace_target_iter: "+str(replace_target_iter)
     str8 = "\n memory_size: "+str(memory_size)
     str9 = "\n batch_size: "+str(batch_size)
-    str10 = "\n STATICDATA: "+str(STATICDATA)
-    str11 = "\n RANDOM_SEED: "+str(RANDOM_SEED)
-    str12 = "\n max_products: "+str(max_products)
-    str13 = "\n min_products: "+str(min_products)
-    str14 = "\n max_sources: "+str(max_sources)
-    str15 = "\n min_sources: "+str(min_sources)
-    str16 = "\n max_product_quantity: "+str(max_product_quantity)
-    str17 = "\n min_product_quantity: "+str(min_product_quantity)
-    str18 = "\n max_source_distance: "+str(max_source_distance)
-    str19 = "\n min_source_distance: "+str(min_source_distance)
-    str20 = "\n max_source_inventory: "+str(max_source_inventory)
-    str21 = "\n min_source_inventory: "+str(min_source_inventory)
+    str11 = "\n RANDOM_SEED: "+str(use_seed)
+    str12 = "\n max_products: "+str(environment_parameters.max_products)
+    str13 = "\n min_products: "+str(environment_parameters.min_products)
+    str14 = "\n max_sources: "+str(environment_parameters.max_sources)
+    str15 = "\n min_sources: "+str(environment_parameters.min_sources)
+    str16 = "\n max_product_quantity: "+str(environment_parameters.max_product_quantity)
+    str17 = "\n min_product_quantity: "+str(environment_parameters.min_product_quantity)
+    str18 = "\n max_source_distance: "+str(environment_parameters.max_source_distance)
+    str19 = "\n min_source_distance: "+str(environment_parameters.min_source_distance)
+    str20 = "\n max_source_inventory: "+str(environment_parameters.max_source_inventory)
+    str21 = "\n min_source_inventory: "+str(environment_parameters.min_source_inventory)
     str22 = "\n test seed: "+str(testseed)
-    str23 = "\n epsilon_min: "+str(epsilon_min)
     file.write(str1)
     file.write(str2)
     file.write(str3)
+    file.write(str23)
     file.write(str4)
     file.write(str5)
     file.write(str6)
     file.write(str7)
     file.write(str8)
     file.write(str9)
-    file.write(str10)
     file.write(str11)
     file.write(str12)
     file.write(str13)
@@ -130,7 +147,6 @@ def writeParameterToFile(training_episodes,testing_episodes,epsilon,epsilon_min,
     file.write(str20)
     file.write(str21)
     file.write(str22)
-    file.write(str23)
     file.close()
     
 'writes the results of the evaluation to file'

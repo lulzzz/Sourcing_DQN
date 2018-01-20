@@ -1,0 +1,3 @@
+- remove parameter input with console
+- think what to do with parameter for console, maybe usefull for some stuff?
+- better concept with data seeds

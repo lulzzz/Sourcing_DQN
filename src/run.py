@@ -10,17 +10,19 @@ from util import writeToCSV
 from util import createFolder
 from util import writeParameterToFile
 from util import simplify_loss
+from parameter import Parameters
 
 import sys
 
 if __name__ == '__main__':
     
-    print("Passed Parameters: ", len(sys.argv))
-    print(str(sys.argv))
+    #print("Passed Parameters: ", len(sys.argv))
+    #print(str(sys.argv))
     
     '___ML PARAMETERS___'
-    if(len(sys.argv) > 1): training_episodes = int(sys.argv[1])
-    else: training_episodes = 10000
+    #if(len(sys.argv) > 1): training_episodes = int(sys.argv[1])
+    #else: training_episodes = 10000
+    training_episodes = 10000
     testing_episodes = 100
     'vanilla optimizer values are used, only lr is passed'
     epsilon = 1.0
@@ -31,10 +33,12 @@ if __name__ == '__main__':
     replace_target_iter = 10
     memory_size = 200
     batch_size = 32
-    STATICDATA = False
-    RANDOM_SEED = True
-    if(len(sys.argv) > 2): test_seed = int(sys.argv[2])
-    else: test_seed = 1
+    use_seed = True
+    #if(len(sys.argv) > 2): test_seed = int(sys.argv[2])
+    #else: test_seed = 1
+    test_seed = 1
+
+    environment_parameters = Parameters()
     
     '___ENVIRONMENT PARAMETERS___'
     max_products = 2
@@ -49,18 +53,13 @@ if __name__ == '__main__':
     min_source_inventory = 10
     
     path = createFolder()
-    writeParameterToFile(training_episodes, testing_episodes, epsilon, epsilon_min, alpha, 
+    writeParameterToFile(environment_parameters, training_episodes, testing_episodes, epsilon, epsilon_min, alpha, 
                          gamma, decay, replace_target_iter, memory_size, batch_size, 
-                         STATICDATA, RANDOM_SEED, max_products, min_products, 
-                         max_sources, min_sources, max_product_quantity, min_product_quantity, 
-                         max_source_distance, min_source_distance, max_source_inventory, 
-                         min_source_inventory, path, test_seed)
+                         use_seed, path, test_seed)
     print("Parameter written to Test folder.")
     
     '___DATA GENERATION___'
-    generator = DataGenerator(RANDOM_SEED, min_products, max_products, min_sources,
-                              max_sources, min_product_quantity, max_product_quantity, min_source_distance,
-                              max_source_distance, min_source_inventory, max_source_inventory)
+    generator = DataGenerator(use_seed, environment_parameters)
     training_data = generator.generateDataSet(training_episodes, 1)
     test_data = generator.generateDataSet(testing_episodes, test_seed)
     print("Data generated.")
@@ -68,9 +67,7 @@ if __name__ == '__main__':
     '___ENVIRONMENT___'
     environment = Environment(training_episodes, testing_episodes, epsilon, epsilon_min, alpha, gamma, decay,
                               replace_target_iter, memory_size, batch_size, training_data,
-                              test_data, max_products, min_products, max_sources, min_sources,
-                              max_product_quantity, min_product_quantity, max_source_distance,
-                              min_source_distance, max_source_inventory, min_source_inventory)
+                              test_data, environment_parameters)
     
     '___TRAIN___'
     loss, train_rewards = environment.train()
