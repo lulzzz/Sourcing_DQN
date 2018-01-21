@@ -11,20 +11,13 @@ from util import createFolder
 from util import writeParameterToFile
 from util import simplify_loss
 from parameter import Parameters
-
 import sys
 
 if __name__ == '__main__':
     
-    #print("Passed Parameters: ", len(sys.argv))
-    #print(str(sys.argv))
-    
     '___ML PARAMETERS___'
-    #if(len(sys.argv) > 1): training_episodes = int(sys.argv[1])
-    #else: training_episodes = 10000
     training_episodes = 10000
     testing_episodes = 100
-    'vanilla optimizer values are used, only lr is passed'
     epsilon = 1.0
     epsilon_min = 0.1
     alpha = 0.001
@@ -34,24 +27,13 @@ if __name__ == '__main__':
     memory_size = 200
     batch_size = 32
     use_seed = True
-    #if(len(sys.argv) > 2): test_seed = int(sys.argv[2])
-    #else: test_seed = 1
+    training_seed = 1
     test_seed = 1
 
+    '___ENVIRONMENT PARAMETERS___'
     environment_parameters = Parameters()
     
-    '___ENVIRONMENT PARAMETERS___'
-    max_products = 2
-    min_products = 1
-    max_sources = 2
-    min_sources = 1
-    max_product_quantity = 10
-    min_product_quantity = 1
-    max_source_distance = 5000
-    min_source_distance = 1
-    max_source_inventory = 1000
-    min_source_inventory = 10
-    
+    '___CREATE TEST FOLDER___'
     path = createFolder()
     writeParameterToFile(environment_parameters, training_episodes, testing_episodes, epsilon, epsilon_min, alpha, 
                          gamma, decay, replace_target_iter, memory_size, batch_size, 
@@ -60,11 +42,11 @@ if __name__ == '__main__':
     
     '___DATA GENERATION___'
     generator = DataGenerator(use_seed, environment_parameters)
-    training_data = generator.generateDataSet(training_episodes, 1)
+    training_data = generator.generateDataSet(training_episodes, training_seed)
     test_data = generator.generateDataSet(testing_episodes, test_seed)
     print("Data generated.")
         
-    '___ENVIRONMENT___'
+    '___CREATE ENVIRONMENT___'
     environment = Environment(training_episodes, testing_episodes, epsilon, epsilon_min, alpha, gamma, decay,
                               replace_target_iter, memory_size, batch_size, training_data,
                               test_data, environment_parameters)
