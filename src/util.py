@@ -29,8 +29,21 @@ def normalize_inventory_quantity(inventory_quantity):
     normalized_quantity = (inventory_quantity / 10) - 1
     return normalized_quantity
 
+'compute real product quantity value'
+def product_quantity_real_value(normalized_prod_quantity):
+    product_quantity = normalized_prod_quantity * 10
+    return product_quantity
 
+'compute real inventory stock value'
+def inventory_quantity_real_value(normalized_inventory_quantity):
+    inventory_quantity = normalized_inventory_quantity + 1
+    inventory_quantity = inventory_quantity * 10
+    return inventory_quantity
 
+'compute real delivery value'
+def delivery_real_value(normalized_delivery):
+    delivery = normalized_delivery * 10
+    return delivery
 
 def createFolder2():
     path = 'tests\\'
@@ -44,31 +57,12 @@ def createFolder2():
     return path
 
 'creates a new folder for the test data inside the test folder'
-def createFolder():
+def createFolder(folder_name):
     path = 'tests\\'
-    folder_list = os.listdir('tests\\')
-    folder_name = 0
-    name_is_valid = False
-    # check if the folder name is valid
-    while(name_is_valid != True):
-        if(check_foldername(folder_list, folder_name) == True):
-            folder_name = folder_name + 1
-        else:
-            name_is_valid = True
-            break
-    path = path + str(folder_name)
+    path = path + folder_name
     if(not os.path.exists(path)):
         os.makedirs(path)
     return path
-
-'check folders in directory'
-def check_foldername(folder_list, test_name):
-    is_existing = False
-    for i in range(len(folder_list)):
-        if(folder_list[i] == test_name):
-            is_existing = True
-            break
-    return is_existing
 
 'write a data list to a csv file'
 def writeToCSV(data_list, file_name, path_):

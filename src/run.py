@@ -30,21 +30,25 @@ if __name__ == '__main__':
     training_seed = 1
     test_seed = 1
 
+    debug_print = False
+
     '___ENVIRONMENT PARAMETERS___'
     environment_parameters = Parameters()
     
     '___CREATE TEST FOLDER___'
-    path = createFolder()
+    path = createFolder('newtest2')
     writeParameterToFile(environment_parameters, training_episodes, testing_episodes, epsilon, epsilon_min, alpha, 
                          gamma, decay, replace_target_iter, memory_size, batch_size, 
                          use_seed, path, test_seed)
-    print("Parameter written to Test folder.")
+    if(debug_print == True):
+        print("Parameter written to Test folder.")
     
     '___DATA GENERATION___'
     generator = DataGenerator(use_seed, environment_parameters)
     training_data = generator.generateDataSet(training_episodes, training_seed)
     test_data = generator.generateDataSet(testing_episodes, test_seed)
-    print("Data generated.")
+    if(debug_print == True):
+        print("Data generated.")
         
     '___CREATE ENVIRONMENT___'
     environment = Environment(training_episodes, testing_episodes, epsilon, epsilon_min, alpha, gamma, decay,
@@ -54,13 +58,17 @@ if __name__ == '__main__':
     '___TRAIN___'
     loss, train_rewards = environment.train()
     loss_ = simplify_loss(loss, 100)
-    print("Agent trained.")
+    if(debug_print == True):
+        print("Agent trained.")
     writeToCSV(train_rewards, "train_rewards", path)
     writeToCSV(loss, "train_loss", path)
-    print("Training data written to Test folder.")
+    if(debug_print == True):
+        print("Training data written to Test folder.")
         
     '___TEST___'
     reward = environment.test()
-    print("Agent tested.")
+    if(debug_print == True):
+        print("Agent tested.")
     writeToCSV(reward, "test_rewards", path)
-    print("Test data written to Test folder.")
+    if(debug_print == True):
+        print("Test data written to Test folder.")

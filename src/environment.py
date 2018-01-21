@@ -8,7 +8,9 @@ import numpy as np
 import tensorflow as tf
 import math
 import copy
-
+from util import product_quantity_real_value
+from util import inventory_quantity_real_value
+from util import delivery_real_value
 from state import State
 
 class Environment():
@@ -225,8 +227,8 @@ class Environment():
         for i in range(self.max_sources):
             products_per_source = 0
             for j in range(self.max_products):
-                # denormalize value
-                n_delivery = self.denormalize_delivery(self.delivery[i][j])
+                # restore real value
+                n_delivery = delivery_real_value(self.delivery[i][j])
                 products_per_source += n_delivery
             if(products_per_source > 0): num_used_sources += 1
         return num_used_sources
@@ -237,8 +239,8 @@ class Environment():
         for i in range(self.max_sources):
             products_num = 0
             for j in range(self.max_products):
-                # denormalize value
-                n_delivery = self.denormalize_delivery(self.delivery[i][j])
+                # restore real value
+                n_delivery = delivery_real_value(self.delivery[i][j])
                 products_num = products_num + n_delivery
             if(products_num > 0):
                 source_ids.append(i)    
@@ -248,8 +250,8 @@ class Environment():
     def check_delivery_status(self):
         to_deliver = 0
         for i in range(len(self.product_quantities_c)):
-            # denormalize value
-            n_pquantity = self.denormalize_pquantity(self.product_quantities_c[i])
+            # restore real value
+            n_pquantity = product_quantity_real_value(self.product_quantities_c[i])
             to_deliver += n_pquantity
         return to_deliver
     
@@ -318,7 +320,7 @@ class Environment():
         out_of_stock = True
         for i in range(len(self.inventory_quantities)):
             stock = self.inventory_quantities[i][action_product]
-            stock = self.denormalize_inventory(stock)
+            stock = inventory_quantity_real_value(stock)
             if(stock > 0):
                 out_of_stock = False
                 break
@@ -332,8 +334,8 @@ class Environment():
         action_name_list = action.split(',')
         action_product = int(action_name_list[0])
         # check if the chosen product still needs more quantity
-        # denormalize value
-        n_product_quantities = self.denormalize_pquantity(self.product_quantities[action_product])
+        # restore real value
+        n_product_quantities = product_quantity_real_value(self.product_quantities[action_product])
         if(n_product_quantities == 0.0):
             valid_action = False
         if(valid_action == True):
@@ -447,12 +449,12 @@ class Environment():
         stock_situation = []
         for i in range(self.max_sources):
             for j in range(self.max_products):
-                # denormalize value
-                n_delivery = self.denormalize_delivery(self.delivery[i][j])
+                # restore real value
+                n_delivery = delivery_real_value(self.delivery[i][j])
                 if(n_delivery > 0):
-                    # denormalize value
-                    n_inventory_stock = self.denormalize_inventory(self.inventory_quantities_init[i][j])
-                    n_delivery = self.denormalize_delivery(self.delivery[i][j])
+                    # restore real value
+                    n_inventory_stock = inventory_quantity_real_value(self.inventory_quantities_init[i][j])
+                    n_delivery = delivery_real_value(self.delivery[i][j])
                     stock = n_inventory_stock - n_delivery
                     stock_situation.append(stock)
         
@@ -466,10 +468,7 @@ class Environment():
         
         # combined reward
         R = A1 * R1 + A2 * R2 + A3 * R3
-        
-        'give additional reward when sourcing is done'
-        #if(self.check_delivery_status()==0): R = R * 2    
-                   
+          
         return R
     
     'Get agent environment feedback, return new state and reward'
@@ -537,7 +536,7 @@ class Environment():
         self.cost_his.append(self.cost)
         self.learn_step_counter += 1
 
-    'Reinforcement Learning - training the NN'
+    'Train the agent'
     def train(self):
         # total learning step counter
         self.learn_step_counter = 0
@@ -740,19 +739,3 @@ class Environment():
             # save reward of last episode
             self.test_rewards.append(reward)
         return self.test_rewards
-    
-    'denormalizes the product quantity'
-    def denormalize_pquantity(self, n_prod_quantity):
-        prod_quantity = n_prod_quantity * 10
-        return prod_quantity
-    
-    'denormalizes the inventory stock'
-    def denormalize_inventory(self, n_quantity):
-        quantity = n_quantity + 1
-        quantity = quantity * 10
-        return quantity
-    
-    'denormalizes the delivery'
-    def denormalize_delivery(self, n_delivery):
-        delivery = n_delivery * 10
-        return delivery
