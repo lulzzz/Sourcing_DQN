@@ -656,7 +656,93 @@ class Environment():
             self.rewards.append(reward)
         return self.cost_his, self.rewards
 
+    'Test the agent'
     def test(self):
+        '___Variables for plotting___'
+        self.test_rewards = []
+        
+        '___Testing loop, test the NN for n episodes, with n orders___'
+        for current_episode in range(self.test_episodes):
+            
+            self.switch_data_testing()
+            
+            # print order information for the episode
+            if(self.PRINT_INFO == True):
+                print("number of products: ", self.number_products)
+                print("product quantities: ", self.product_quantities)
+                print("number of sources: ", self.number_sources)
+                print("distances: ", self.distances)
+                print("inventory quantities: ", self.inventory_quantities)
+
+            reward = 0
+            is_done = False
+            
+            # set the initial state for the current episode
+            o = []
+            d = []
+            e = []
+            s = []
+            for i in range(len(self.product_quantities)):
+                o.append(self.product_quantities[i])
+            for i in range(self.max_sources):
+                for j in range(self.max_products):
+                    d.append(self.delivery[i][j])
+            for i in range(len(self.distances)):
+                e.append(self.distances[i])
+            for i in range(self.max_sources):
+                for j in range(self.max_products):
+                    s.append(self.inventory_quantities[i][j])
+            S = State(o, d, e, s)
+            
+            '___Sourcing loop, continue until the sourcing for an order is done___'
+            while not is_done:
+                action_valid = False
+                out_of_stock = None
+                
+                # loop until a valid action is chosen
+                while(action_valid == False):
+                    # agent chooses an action
+                    A = self.choose_action_maxq(S)
+                    
+                    # get the action name of A
+                    A_name = ""
+                    for i in range(len(self.ACTIONS_INDEX)):
+                        if(self.ACTIONS_INDEX[i][0] == A):
+                            A_name = self.ACTIONS_INDEX[i][1]
+                    
+                    # check if action is in Action set of current episode
+                    if(A_name in self.ACTIONS):
+                        # validate the chosen action
+                        action_valid, out_of_stock = self.validate_action(A_name)
+           
+                # retrieve next state and the reward for the chosen action
+                S_, R, done = self.get_env_feedback(A_name)
+                
+                # calculate reward
+                reward += R
+                
+                # if out of stock, delivery can not be completed, terminate sourcing
+                if(out_of_stock == True): 
+                    done = True
+                    reward = 0
+                
+                if(self.PRINT_INFO == True): 
+                    print("Episode: "+str(current_episode)+", Action: "+str(A)+", Reward: "+str(R))
+                    print("Delivery: "+str(self.delivery))
+                    print("Out of Stock: "+str(out_of_stock))
+                    
+                # go to the next state
+                S = S_
+                # check if the sourcing is finished
+                if done == True:
+                    break
+                
+            # save reward of last episode
+            self.test_rewards.append(reward)
+        return self.test_rewards
+
+    'Test the agent with monte carlo tree search'
+    def test_mcts(self):
         '___Variables for plotting___'
         self.test_rewards = []
         
