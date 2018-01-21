@@ -17,7 +17,7 @@ if __name__ == '__main__':
     
     '___ML PARAMETERS___'
     training_episodes = 10000
-    testing_episodes = 100
+    testing_episodes = 1
     epsilon = 1.0
     epsilon_min = 0.1
     alpha = 0.001

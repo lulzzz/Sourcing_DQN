@@ -391,6 +391,34 @@ class Environment():
             temp2 = action_values[0][temp]
             action_names.append([self.ACTIONS_INDEX[i][0], self.ACTIONS_INDEX[i][1], temp2])
         action_names.sort(key=self.getListKey, reverse=True)
+
+        print(action_names)
+
+        # check if the actions is valid, if not choose the next best one
+        for j in range(len(action_names)):
+            action = action_names[j][1]
+            action_id = action_names[j][0]
+            valid_action, out_of_stock = self.validate_action(action)
+            if(valid_action == True): 
+                break
+        return action_id
+
+    'Choose action with probability of q value for monte carlo tree search'
+    def choose_action_mcts(self, S):
+        # choose a random action according to the q values
+        action_names = []
+        S = S.observation
+        S_np = np.array(S)
+        S = S_np[np.newaxis, :]
+        action_values = self.sess.run(self.q_eval, feed_dict={self.s: S})
+        for i in range(len(self.ACTIONS_INDEX)):
+            temp = self.ACTIONS_INDEX[i][0]
+            temp2 = action_values[0][temp]
+            action_names.append([self.ACTIONS_INDEX[i][0], self.ACTIONS_INDEX[i][1], temp2])
+        action_names.sort(key=self.getListKey, reverse=True)
+
+
+
         # check if the actions is valid, if not choose the next best one
         for j in range(len(action_names)):
             action = action_names[j][1]
@@ -787,7 +815,7 @@ class Environment():
                 # loop until a valid action is chosen
                 while(action_valid == False):
                     # agent chooses an action
-                    A = self.choose_action_maxq(S)
+                    A = self.choose_action_mcts(S)
                     
                     # get the action name of A
                     A_name = ""
