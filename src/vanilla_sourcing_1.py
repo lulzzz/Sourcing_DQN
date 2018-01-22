@@ -223,3 +223,10 @@ if __name__ == '__main__':
     fig.savefig(path+'\\plot_rewards.png')
     if(plot_results == True):
         plt.show()
+
+    # compute average reward
+    sumr = 0
+    for i in range(len(rewards)):
+        sumr = sumr + float(rewards[i])
+    average = sumr/len(rewards)
+    print(average)

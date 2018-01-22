@@ -12,18 +12,20 @@ from util import writeParameterToFile
 from util import simplify_loss
 from parameter import Parameters
 import sys
+import matplotlib.pyplot as plt
+import numpy as np
 
 if __name__ == '__main__':
     
     '___ML PARAMETERS___'
     training_episodes = 10000
-    testing_episodes = 1
+    testing_episodes = 100
     epsilon = 1.0
     epsilon_min = 0.1
     alpha = 0.001
     gamma = 0.01
     decay = 0.9
-    replace_target_iter = 10
+    replace_target_iter = 1
     memory_size = 200
     batch_size = 32
     use_seed = True
@@ -36,7 +38,7 @@ if __name__ == '__main__':
     environment_parameters = Parameters()
     
     '___CREATE TEST FOLDER___'
-    path = create_test_folder('sourcing_dqn')
+    path = create_test_folder('ai')
     writeParameterToFile(environment_parameters, training_episodes, testing_episodes, epsilon, epsilon_min, alpha, 
                          gamma, decay, replace_target_iter, memory_size, batch_size, 
                          use_seed, path, test_seed)
@@ -55,22 +57,39 @@ if __name__ == '__main__':
                               replace_target_iter, memory_size, batch_size, training_data,
                               test_data, environment_parameters)
     
-    '''
     '___TRAIN___'
     loss, train_rewards = environment.train()
     loss_ = simplify_loss(loss, 100)
     if(debug_print == True):
         print("Agent trained.")
-    writeToCSV(train_rewards, "train_rewards", path)
-    writeToCSV(loss, "train_loss", path)
+    write_list_to_csv(train_rewards, "rewards", path)
+    write_list_to_csv(loss, "loss", path)
     if(debug_print == True):
         print("Training data written to Test folder.")
-        
+
     '___TEST___'
-    reward = environment.test()
+    path = create_test_folder('sourcing_dqn')
+    sum_rewards, test_rewards = environment.test()
     if(debug_print == True):
         print("Agent tested.")
-    writeToCSV(reward, "test_rewards", path)
+    write_list_to_csv(sum_rewards, "sum_rewards", path)
+    write_list_to_csv(test_rewards, "test_rewards", path)
     if(debug_print == True):
         print("Test data written to Test folder.")
-    '''
+
+    fig = plt.figure()
+    plt.axis([0,100,-11,10])
+    plt.plot(np.arange(len(test_rewards)), test_rewards, 'b+')
+    plt.grid()
+    plt.ylabel('reward')
+    plt.xlabel('sourcing requests')
+    plt.title('DQN Sourcing Results')
+    fig.savefig(path+'\\plot_rewards.png')
+    plt.show()
+
+    # compute average reward
+    sumr = 0
+    for i in range(len(test_rewards)):
+        sumr = sumr + float(test_rewards[i])
+    average = sumr/len(test_rewards)
+    print(average)

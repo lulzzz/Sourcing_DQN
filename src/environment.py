@@ -137,7 +137,7 @@ class Environment():
     'calculates the value for decreasing epsilon per episode' 
     def calculate_epsilon_decrease(self):
         # exploitation vs exploration
-        self.episodes_decreasing = self.train_episodes * 0.1
+        self.episodes_decreasing = (self.train_episodes * 0.5) - self.memory_size
         e_difference = self.EPSILON - self.epsilon_min
         self.epsilon_decrease = e_difference / self.episodes_decreasing
     
@@ -281,7 +281,7 @@ class Environment():
         with tf.variable_scope('loss'):
             self.loss = tf.reduce_mean(tf.squared_difference(self.q_target, self.q_eval))
         with tf.variable_scope('train'):
-            'Trying different optimizers'
+            # use adam optimizer with custom lr
             self._train_op = tf.train.AdamOptimizer(self.ALPHA).minimize(self.loss)
 
         # ------------------ build target_net ------------------
@@ -319,9 +319,9 @@ class Environment():
         action_product = int(action_name_list[0])
         out_of_stock = True
         for i in range(len(self.inventory_quantities)):
-            stock = self.inventory_quantities[i][action_product]
-            stock = inventory_quantity_real_value(stock)
-            if(stock > 0):
+            normalized_stock = self.inventory_quantities[i][action_product]
+            stock = inventory_quantity_real_value(normalized_stock)
+            if(stock > 0.0):
                 out_of_stock = False
                 break
         return out_of_stock
@@ -333,13 +333,21 @@ class Environment():
         out_of_stock = None
         action_name_list = action.split(',')
         action_product = int(action_name_list[0])
+        action_source = int(action_name_list[1])
         # check if the chosen product still needs more quantity
         # restore real value
-        n_product_quantities = product_quantity_real_value(self.product_quantities[action_product])
-        if(n_product_quantities == 0.0):
+        product_quantity = product_quantity_real_value(self.product_quantities[action_product])
+        # check the product quantity
+        if(product_quantity == 0.0):
             valid_action = False
-        if(valid_action == True):
-            out_of_stock = self.item_out_of_stock(action)
+        inventory_quantity = inventory_quantity_real_value(self.inventory_quantities[action_source][action_product])
+        # check the inventory quantity
+        if(inventory_quantity == 0.0):
+            valid_action = False
+        # check if the current item is out of stock, if yes terminate the sourcing
+        out_of_stock = self.item_out_of_stock(action)
+        if(out_of_stock == True):
+            valid_action = True
         return valid_action, out_of_stock
     
     'Calculate epsilon for the e-greedy strategy'
@@ -362,6 +370,7 @@ class Environment():
     
     'Choose the next action'
     def choose_action(self, S):
+        '''
         # choose max q action
         if(np.random.uniform() >= self.EPSILON and self.check_action_values(S) == False): 
             action = self.choose_action_maxq(S)
@@ -371,6 +380,11 @@ class Environment():
             for i in range(len(self.ACTIONS_INDEX)):
                 temp.append(self.ACTIONS_INDEX[i][0])
             action = np.random.choice(temp)
+        '''
+        temp = []
+        for i in range(len(self.ACTIONS_INDEX)):
+            temp.append(self.ACTIONS_INDEX[i][0])
+        action = np.random.choice(temp)
         return action
     
     'Get key of list item'
@@ -391,34 +405,6 @@ class Environment():
             temp2 = action_values[0][temp]
             action_names.append([self.ACTIONS_INDEX[i][0], self.ACTIONS_INDEX[i][1], temp2])
         action_names.sort(key=self.getListKey, reverse=True)
-
-        print(action_names)
-
-        # check if the actions is valid, if not choose the next best one
-        for j in range(len(action_names)):
-            action = action_names[j][1]
-            action_id = action_names[j][0]
-            valid_action, out_of_stock = self.validate_action(action)
-            if(valid_action == True): 
-                break
-        return action_id
-
-    'Choose action with probability of q value for monte carlo tree search'
-    def choose_action_mcts(self, S):
-        # choose a random action according to the q values
-        action_names = []
-        S = S.observation
-        S_np = np.array(S)
-        S = S_np[np.newaxis, :]
-        action_values = self.sess.run(self.q_eval, feed_dict={self.s: S})
-        for i in range(len(self.ACTIONS_INDEX)):
-            temp = self.ACTIONS_INDEX[i][0]
-            temp2 = action_values[0][temp]
-            action_names.append([self.ACTIONS_INDEX[i][0], self.ACTIONS_INDEX[i][1], temp2])
-        action_names.sort(key=self.getListKey, reverse=True)
-
-
-
         # check if the actions is valid, if not choose the next best one
         for j in range(len(action_names)):
             action = action_names[j][1]
@@ -570,8 +556,8 @@ class Environment():
         self.learn_step_counter = 0
         # initialize zero memory [s,a,r,s_]
         self.memory = np.zeros((self.memory_size, self.n_features*2+2))
-        'multilayer perceptron'
         # build the NN
+        # multilayer perceptron
         self.build_net()
         t_params = tf.get_collection('target_net_params')
         e_params = tf.get_collection('eval_net_params')
@@ -640,25 +626,26 @@ class Environment():
                         # validate the chosen action
                         action_valid, out_of_stock = self.validate_action(A_name)
 
-                # retrieve next state and the reward for the chosen action
-                S_, R, done = self.get_env_feedback(A_name)
-                
                 # if out of stock, delivery can not be completed, terminate sourcing
-                if(out_of_stock == True): done = True
+                if(out_of_stock == True):
+                    done = True
+                # else continue and get env feedback
+                else:
+                    # retrieve next state and the reward for the chosen action
+                    S_, R, done = self.get_env_feedback(A_name)
 
-                # store the transition data
-                self.store_transition(S, A, R, S_)
-                
-                # sum reward for current episode
-                reward += R
-                
-                if(self.PRINT_INFO == True): 
-                    print("Episode: "+str(current_episode)+", Action: "+str(A)+", Reward: "+str(R))
-                    print("Delivery: "+str(self.delivery))
-                    print("Out of Stock: "+str(out_of_stock))
-                
-                # update state
-                S = S_
+                    # store the transition data
+                    self.store_transition(S, A, R, S_)
+                    
+                    # sum reward for current episode
+                    reward += R
+                    
+                    if(self.PRINT_INFO == True): 
+                        print("Episode: "+str(current_episode)+", Action: "+str(A)+", Reward: "+str(R))
+                        print("Delivery: "+str(self.delivery))
+                    
+                    # update state
+                    S = S_
                 
                 # check if the sourcing is finished
                 if done == True:
@@ -688,8 +675,9 @@ class Environment():
     def test(self):
         '___Variables for plotting___'
         self.test_rewards = []
+        self.sum_rewards = []
         
-        '___Testing loop, test the NN for n episodes, with n orders___'
+        'Test the AI for n sourcing orders'
         for current_episode in range(self.test_episodes):
             
             self.switch_data_testing()
@@ -703,6 +691,7 @@ class Environment():
                 print("inventory quantities: ", self.inventory_quantities)
 
             reward = 0
+            single_reward = 0
             is_done = False
             
             # set the initial state for the current episode
@@ -743,113 +732,34 @@ class Environment():
                         # validate the chosen action
                         action_valid, out_of_stock = self.validate_action(A_name)
            
-                # retrieve next state and the reward for the chosen action
-                S_, R, done = self.get_env_feedback(A_name)
-                
-                # calculate reward
-                reward += R
-                
                 # if out of stock, delivery can not be completed, terminate sourcing
-                if(out_of_stock == True): 
+                if(out_of_stock == True):
                     done = True
-                    reward = 0
-                
-                if(self.PRINT_INFO == True): 
-                    print("Episode: "+str(current_episode)+", Action: "+str(A)+", Reward: "+str(R))
-                    print("Delivery: "+str(self.delivery))
-                    print("Out of Stock: "+str(out_of_stock))
+                    reward = -10
+                    single_reward = -10
+                # else continue and get env feedback
+                else:
+                    # retrieve next state and the reward for the chosen action
+                    S_, R, done = self.get_env_feedback(A_name)
                     
-                # go to the next state
-                S = S_
+                    # calculate reward
+                    reward += R
+                    
+                    if(self.PRINT_INFO == True): 
+                        print("Episode: "+str(current_episode)+", Action: "+str(A)+", Reward: "+str(R))
+                        print("Delivery: "+str(self.delivery))
+                        print("Out of Stock: "+str(out_of_stock))
+                        
+                    # go to the next state
+                    S = S_
+
                 # check if the sourcing is finished
                 if done == True:
+                    if(out_of_stock != True):
+                        single_reward = R
                     break
                 
             # save reward of last episode
-            self.test_rewards.append(reward)
-        return self.test_rewards
-
-    'Test the agent with monte carlo tree search'
-    def test_mcts(self):
-        '___Variables for plotting___'
-        self.test_rewards = []
-        
-        '___Testing loop, test the NN for n episodes, with n orders___'
-        for current_episode in range(self.test_episodes):
-            
-            self.switch_data_testing()
-            
-            # print order information for the episode
-            if(self.PRINT_INFO == True):
-                print("number of products: ", self.number_products)
-                print("product quantities: ", self.product_quantities)
-                print("number of sources: ", self.number_sources)
-                print("distances: ", self.distances)
-                print("inventory quantities: ", self.inventory_quantities)
-
-            reward = 0
-            is_done = False
-            
-            # set the initial state for the current episode
-            o = []
-            d = []
-            e = []
-            s = []
-            for i in range(len(self.product_quantities)):
-                o.append(self.product_quantities[i])
-            for i in range(self.max_sources):
-                for j in range(self.max_products):
-                    d.append(self.delivery[i][j])
-            for i in range(len(self.distances)):
-                e.append(self.distances[i])
-            for i in range(self.max_sources):
-                for j in range(self.max_products):
-                    s.append(self.inventory_quantities[i][j])
-            S = State(o, d, e, s)
-            
-            '___Sourcing loop, continue until the sourcing for an order is done___'
-            while not is_done:
-                action_valid = False
-                out_of_stock = None
-                
-                # loop until a valid action is chosen
-                while(action_valid == False):
-                    # agent chooses an action
-                    A = self.choose_action_mcts(S)
-                    
-                    # get the action name of A
-                    A_name = ""
-                    for i in range(len(self.ACTIONS_INDEX)):
-                        if(self.ACTIONS_INDEX[i][0] == A):
-                            A_name = self.ACTIONS_INDEX[i][1]
-                    
-                    # check if action is in Action set of current episode
-                    if(A_name in self.ACTIONS):
-                        # validate the chosen action
-                        action_valid, out_of_stock = self.validate_action(A_name)
-           
-                # retrieve next state and the reward for the chosen action
-                S_, R, done = self.get_env_feedback(A_name)
-                
-                # calculate reward
-                reward += R
-                
-                # if out of stock, delivery can not be completed, terminate sourcing
-                if(out_of_stock == True): 
-                    done = True
-                    reward = 0
-                
-                if(self.PRINT_INFO == True): 
-                    print("Episode: "+str(current_episode)+", Action: "+str(A)+", Reward: "+str(R))
-                    print("Delivery: "+str(self.delivery))
-                    print("Out of Stock: "+str(out_of_stock))
-                    
-                # go to the next state
-                S = S_
-                # check if the sourcing is finished
-                if done == True:
-                    break
-                
-            # save reward of last episode
-            self.test_rewards.append(reward)
-        return self.test_rewards
+            self.test_rewards.append(single_reward)
+            self.sum_rewards.append(reward)
+        return self.sum_rewards, self.test_rewards

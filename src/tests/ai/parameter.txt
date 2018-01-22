@@ -1,22 +1,22 @@
  training_episodes: 10000
- testing_episodes: 1
+ testing_episodes: 100
  epsilon: 1.0
  epsilon_min: 0.1
  alpha: 0.001
  gamma: 0.01
  decay: 0.9
- replace_target_iter: 10
+ replace_target_iter: 1
  memory_size: 200
  batch_size: 32
  RANDOM_SEED: True
- max_products: 10
+ max_products: 2
  min_products: 1
- max_sources: 10
+ max_sources: 2
  min_sources: 1
  max_product_quantity: 10
  min_product_quantity: 1
  max_source_distance: 5000
  min_source_distance: 1
- max_source_inventory: 10
+ max_source_inventory: 100
  min_source_inventory: 0
  test seed: 1
