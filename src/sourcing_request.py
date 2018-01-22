@@ -15,6 +15,9 @@ class SourcingRequest():
     def __init__(self, max_products, min_products, max_product_quantity, min_product_quantity, max_sources, 
     max_source_distance, min_source_distance, max_source_inventory, min_source_inventory):
 
+        # defines the complexity limit for the inventory stock
+        self.inventory_complexity_limit = 10
+
         self.max_products = max_products
         self.min_products = min_products
         self.max_product_quantity = max_product_quantity
@@ -78,8 +81,8 @@ class SourcingRequest():
 
                 # stock limit
                 # reduce complexity
-                if(inventory_quantity > 20):
-                    inventory_quantity = 20
+                if(inventory_quantity >= self.inventory_complexity_limit):
+                    inventory_quantity = self.inventory_complexity_limit
 
                 # normalize inventory quantity
                 normalized_quantity = normalize_inventory_quantity(inventory_quantity)

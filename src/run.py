@@ -6,8 +6,8 @@ Created on Dec 21, 2017
 
 from environment import Environment
 from data_generator import DataGenerator
-from util import writeToCSV
-from util import createFolder
+from util import write_list_to_csv
+from util import create_test_folder
 from util import writeParameterToFile
 from util import simplify_loss
 from parameter import Parameters
@@ -30,13 +30,13 @@ if __name__ == '__main__':
     training_seed = 1
     test_seed = 1
 
-    debug_print = False
+    debug_print = True
 
     '___ENVIRONMENT PARAMETERS___'
     environment_parameters = Parameters()
     
     '___CREATE TEST FOLDER___'
-    path = createFolder('newtest2')
+    path = create_test_folder('sourcing_dqn')
     writeParameterToFile(environment_parameters, training_episodes, testing_episodes, epsilon, epsilon_min, alpha, 
                          gamma, decay, replace_target_iter, memory_size, batch_size, 
                          use_seed, path, test_seed)
@@ -49,12 +49,13 @@ if __name__ == '__main__':
     test_data = generator.generateDataSet(testing_episodes, test_seed)
     if(debug_print == True):
         print("Data generated.")
-        
+
     '___CREATE ENVIRONMENT___'
     environment = Environment(training_episodes, testing_episodes, epsilon, epsilon_min, alpha, gamma, decay,
                               replace_target_iter, memory_size, batch_size, training_data,
                               test_data, environment_parameters)
     
+    '''
     '___TRAIN___'
     loss, train_rewards = environment.train()
     loss_ = simplify_loss(loss, 100)
@@ -72,3 +73,4 @@ if __name__ == '__main__':
     writeToCSV(reward, "test_rewards", path)
     if(debug_print == True):
         print("Test data written to Test folder.")
+    '''

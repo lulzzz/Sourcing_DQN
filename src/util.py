@@ -26,7 +26,7 @@ def normalize_product_quantity(prod_quantity):
 
 'normalizes the inventory quantity'
 def normalize_inventory_quantity(inventory_quantity):
-    normalized_quantity = (inventory_quantity / 10) - 1
+    normalized_quantity = inventory_quantity / 10
     return normalized_quantity
 
 'compute real product quantity value'
@@ -36,8 +36,7 @@ def product_quantity_real_value(normalized_prod_quantity):
 
 'compute real inventory stock value'
 def inventory_quantity_real_value(normalized_inventory_quantity):
-    inventory_quantity = normalized_inventory_quantity + 1
-    inventory_quantity = inventory_quantity * 10
+    inventory_quantity = normalized_inventory_quantity * 10
     return inventory_quantity
 
 'compute real delivery value'
@@ -45,9 +44,9 @@ def delivery_real_value(normalized_delivery):
     delivery = normalized_delivery * 10
     return delivery
 
-def createFolder2():
+'creates a new folder for a sourcing test inside the tests folder'
+def create_test_folder(folder_name):
     path = 'tests\\'
-    folder_name = 'vanilla_sourcing'
     path = path + folder_name
     if(not os.path.exists(path)):
         os.makedirs(path)
@@ -56,16 +55,8 @@ def createFolder2():
         os.makedirs(path)
     return path
 
-'creates a new folder for the test data inside the test folder'
-def createFolder(folder_name):
-    path = 'tests\\'
-    path = path + folder_name
-    if(not os.path.exists(path)):
-        os.makedirs(path)
-    return path
-
-'write a data list to a csv file'
-def writeToCSV(data_list, file_name, path_):
+'write data from a list to a csv file'
+def write_list_to_csv(data_list, file_name, test_folder_path):
     nrlist = []
     for i in range(len(data_list)):
         nrlist.append(i+1)
@@ -73,9 +64,9 @@ def writeToCSV(data_list, file_name, path_):
     for i in range(len(data_list)):
         dictionary[nrlist[i]] = data_list[i]
     # create the file path
-    path = path_
+    path = test_folder_path
     data_type = '.csv'
-    file_path = path+'/'+file_name+data_type
+    file_path = path+'\\'+file_name+data_type
     # create the column titles
     column_titles = 'nr,value'
     # sort the dictionary

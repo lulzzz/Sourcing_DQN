@@ -1,3 +1,8 @@
-- remove parameter input with console
-- think what to do with parameter for console, maybe usefull for some stuff?
-- better concept with data seeds
+
+- training and testing should be seperate
+
+- implement mcts
+
+- implement second vanilla sourcing strategy
+
+- sourcing dqn works for 10 by 10 scenario
