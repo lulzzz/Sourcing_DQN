@@ -655,6 +655,7 @@ class Environment():
             step += 1
                 
             # update target network
+            # tnuf = target network update frequency
             if(current_episode > self.replay_start_size) and (counter >= self.tnuf):
                 self.learn()
                 counter = 1
@@ -676,6 +677,7 @@ class Environment():
         '___Variables for plotting___'
         self.test_rewards = []
         self.sum_rewards = []
+        self.sourcing_results = []
         
         'Test the AI for n sourcing orders'
         for current_episode in range(self.test_episodes):
@@ -693,6 +695,7 @@ class Environment():
             reward = 0
             single_reward = 0
             is_done = False
+            sourcing_successful = False
             
             # set the initial state for the current episode
             o = []
@@ -735,8 +738,10 @@ class Environment():
                 # if out of stock, delivery can not be completed, terminate sourcing
                 if(out_of_stock == True):
                     done = True
-                    reward = -10
-                    single_reward = -10
+                    reward = 0
+                    single_reward = 0
+                    sourcing_successful = False
+
                 # else continue and get env feedback
                 else:
                     # retrieve next state and the reward for the chosen action
@@ -757,9 +762,12 @@ class Environment():
                 if done == True:
                     if(out_of_stock != True):
                         single_reward = R
+                        sourcing_successful = True
                     break
                 
             # save reward of last episode
             self.test_rewards.append(single_reward)
             self.sum_rewards.append(reward)
-        return self.sum_rewards, self.test_rewards
+            self.sourcing_results.append(sourcing_successful)
+
+        return self.sum_rewards, self.test_rewards, self.sourcing_results

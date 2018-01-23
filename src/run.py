@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     '___TEST___'
     path = create_test_folder('sourcing_dqn')
-    sum_rewards, test_rewards = environment.test()
+    sum_rewards, test_rewards, sourcing_results = environment.test()
     if(debug_print == True):
         print("Agent tested.")
     write_list_to_csv(sum_rewards, "sum_rewards", path)
@@ -77,13 +77,30 @@ if __name__ == '__main__':
     if(debug_print == True):
         print("Test data written to Test folder.")
 
+    '___PLOT TEST RESULTS___'
+    successfull_sourcings = []
+    for i in range(len(sourcing_results)):
+        if(sourcing_results[i] == True):
+            successfull_sourcings.append(test_rewards[i])
+        else:
+            successfull_sourcings.append(-100)
+
+    failed_sourcings = []
+    for i in range(len(sourcing_results)):
+        if(sourcing_results[i] == False):
+            failed_sourcings.append(test_rewards[i])
+        else:
+            failed_sourcings.append(-100)
+
     fig = plt.figure()
     plt.axis([0,100,-11,10])
-    plt.plot(np.arange(len(test_rewards)), test_rewards, 'b+')
+    plt.plot(np.arange(len(test_rewards)), successfull_sourcings, 'g+', label='successful')
+    plt.plot(np.arange(len(test_rewards)), failed_sourcings, 'r.', label='unsuccessful')
     plt.grid()
     plt.ylabel('reward')
     plt.xlabel('sourcing requests')
-    plt.title('DQN Sourcing Results')
+    plt.title('DQN Sourcing Strategy Results')
+    plt.legend()
     fig.savefig(path+'\\plot_rewards.png')
     plt.show()
 
@@ -92,4 +109,20 @@ if __name__ == '__main__':
     for i in range(len(test_rewards)):
         sumr = sumr + float(test_rewards[i])
     average = sumr/len(test_rewards)
-    print(average)
+    print('average all orders: '+str(average))
+
+    # compute average reward for successfull sourcings
+    sumsr = 0
+    counter = 0
+    for i in range(len(successfull_sourcings)):
+        if(successfull_sourcings[i] != -100):
+            sumsr = sumsr + float(successfull_sourcings[i])
+            counter = counter + 1
+    average_success = sumsr / counter
+    print('average successfull sourcings: '+str(average_success))
+
+    # compute percentage of successfull sourcings
+    percentage = 0
+    one_percent = len(successfull_sourcings) / 100
+    percentage = counter / one_percent
+    print('successfull sourcings: '+str(percentage)+'%')

@@ -17,5 +17,5 @@ class Parameters():
         self.min_product_quantity = 1
         self.max_source_distance = 5000
         self.min_source_distance = 1
-        self.max_source_inventory = 100
-        self.min_source_inventory = 0
+        self.max_source_inventory = 1000
+        self.min_source_inventory = 10

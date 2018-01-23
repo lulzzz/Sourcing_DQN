@@ -23,7 +23,7 @@ if __name__ == '__main__':
     num_sourcing_requests = 100
     use_seed = True
     test_seed = 1
-    failed_sourcing_reward = -10
+    failed_sourcing_reward = 0
 
     debug_print = False
     plot_results = False
@@ -213,13 +213,14 @@ if __name__ == '__main__':
             failed_sourcings.append(-20)
 
     fig = plt.figure()
-    plt.axis([0,100,-11,10])
-    plt.plot(np.arange(len(rewards)), successfull_sourcings, 'g+')
-    plt.plot(np.arange(len(rewards)), failed_sourcings, 'r+')
+    plt.axis([0,100,-1,10])
+    plt.plot(np.arange(len(rewards)), successfull_sourcings, 'g+', label='successful')
+    plt.plot(np.arange(len(rewards)), failed_sourcings, 'r.', label='unsuccessful')
     plt.grid()
     plt.ylabel('reward')
     plt.xlabel('sourcing requests')
-    plt.title('One Consignement Today Sourcing Results')
+    plt.title('One Consignement Today Sourcing Strategy Results')
+    plt.legend()
     fig.savefig(path+'\\plot_rewards.png')
     if(plot_results == True):
         plt.show()
@@ -229,4 +230,20 @@ if __name__ == '__main__':
     for i in range(len(rewards)):
         sumr = sumr + float(rewards[i])
     average = sumr/len(rewards)
-    print(average)
+    print('average all orders: '+str(average))
+
+    # compute average reward for successfull sourcings
+    sumsr = 0
+    counter = 0
+    for i in range(len(successfull_sourcings)):
+        if(successfull_sourcings[i] != -20):
+            sumsr = sumsr + float(successfull_sourcings[i])
+            counter = counter + 1
+    average_success = sumsr / counter
+    print('average successfull sourcings: '+str(average_success))
+
+    # compute percentage of successfull sourcings
+    percentage = 0
+    one_percent = len(successfull_sourcings) / 100
+    percentage = counter / one_percent
+    print('successfull sourcings: '+str(percentage)+'%')
