@@ -59,9 +59,14 @@ if __name__ == '__main__':
     
     '___TRAIN___'
     loss, train_rewards = environment.train()
-    loss_ = simplify_loss(loss, 100)
     if(debug_print == True):
         print("Agent trained.")
+    # save tensorflow session
+    environment.save_tensorflow_session(path)
+    if(debug_print == True):
+        print("Tensorflow session saved.")
+    #loss_ = simplify_loss(loss, 100)
+    # save training data
     write_list_to_csv(train_rewards, "rewards", path)
     write_list_to_csv(loss, "loss", path)
     if(debug_print == True):
@@ -83,17 +88,19 @@ if __name__ == '__main__':
         if(sourcing_results[i] == True):
             successfull_sourcings.append(test_rewards[i])
         else:
-            successfull_sourcings.append(-100)
+            successfull_sourcings.append(-1000)
 
     failed_sourcings = []
     for i in range(len(sourcing_results)):
         if(sourcing_results[i] == False):
             failed_sourcings.append(test_rewards[i])
         else:
-            failed_sourcings.append(-100)
+            failed_sourcings.append(-1000)
 
     fig = plt.figure()
-    plt.axis([0,100,-11,10])
+    y_min = np.min(test_rewards)
+    y_max = np.max(test_rewards)
+    plt.axis([0,100,y_min-5,y_max+5])
     plt.plot(np.arange(len(test_rewards)), successfull_sourcings, 'g+', label='successful')
     plt.plot(np.arange(len(test_rewards)), failed_sourcings, 'r.', label='unsuccessful')
     plt.grid()
@@ -115,7 +122,7 @@ if __name__ == '__main__':
     sumsr = 0
     counter = 0
     for i in range(len(successfull_sourcings)):
-        if(successfull_sourcings[i] != -100):
+        if(successfull_sourcings[i] != -1000):
             sumsr = sumsr + float(successfull_sourcings[i])
             counter = counter + 1
     average_success = sumsr / counter

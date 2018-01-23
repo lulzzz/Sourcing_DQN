@@ -131,7 +131,7 @@ class Environment():
         self.n_actions = len(self.ALL_ACTIONS)
         # calc e-decrease
         self.calculate_epsilon_decrease()
-        # show the print statements/training, testing process
+        # show debug information
         self.PRINT_INFO = False
        
     'calculates the value for decreasing epsilon per episode' 
@@ -671,6 +671,12 @@ class Environment():
             # save reward of last episode
             self.rewards.append(reward)
         return self.cost_his, self.rewards
+
+    'Saves the tensorflow model to a file'
+    def save_tensorflow_session(self, path):
+        self.saver = tf.train.Saver()
+        save_path = self.saver.save(self.sess, path+'\\model.ckpt')
+        return save_path
 
     'Test the agent'
     def test(self):

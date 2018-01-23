@@ -9,9 +9,9 @@
  memory_size: 200
  batch_size: 32
  RANDOM_SEED: True
- max_products: 2
+ max_products: 4
  min_products: 1
- max_sources: 2
+ max_sources: 4
  min_sources: 1
  max_product_quantity: 10
  min_product_quantity: 1
